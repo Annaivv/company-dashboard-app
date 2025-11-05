@@ -1,14 +1,15 @@
-import type { AuthRequest } from '@/types/expressRequest.interface';
+// import type { AuthRequest } from '@/types/expressRequest.interface';
+import { User } from '@/user/decorators/user.decorator';
 import { CreateUserDto } from '@/user/dto/createUser.dto';
 import { LoginUserDto } from '@/user/dto/loginUser.dto';
-import { IUserResponse } from '@/user/types/userResponse.interface';
+import type { IUserResponse } from '@/user/types/userResponse.interface';
+import { UserEntity } from '@/user/user.entity';
 import { UserService } from '@/user/user.service';
 import {
   Body,
   Controller,
   Get,
   Post,
-  Req,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -52,7 +53,17 @@ export class UserController {
   }
 
   @Get('user')
-  async getCurrentUser(@Req() request: AuthRequest): Promise<IUserResponse> {
-    return this.userService.generateUserResponse(request.user);
+  @ApiOperation({ summary: 'Get the current user' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'User data received successfully. Returns access token and user information.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'User data is missing.',
+  })
+  getCurrentUser(@User() user: UserEntity): IUserResponse {
+    return this.userService.generateUserResponse(user);
   }
 }
