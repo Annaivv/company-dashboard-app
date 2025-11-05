@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtPayload } from '@/user/types/jwt-payload.interface';
 import { safeSign } from '@/utils/userUtils/safeSign';
+import { LoginUserDto } from '@/user/dto/loginUser.dto';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -39,6 +41,38 @@ export class UserService {
     const savedUser = await this.userRepository.save(newUser);
 
     return this.generateUserResponse(savedUser);
+  }
+
+  async loginUser(loginUserDto: LoginUserDto): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: loginUserDto.email,
+      },
+    });
+
+    if (!user)
+      throw new HttpException(
+        'Wrong email or password',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!loginUserDto.password || !user.password)
+      throw new HttpException(
+        'Wrong email or password',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const matchPassword = await compare(loginUserDto.password, user.password);
+
+    if (!matchPassword)
+      throw new HttpException(
+        'Wrong email or password',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    delete user.password;
+
+    return user;
   }
 
   generateToken(user: UserEntity): string {

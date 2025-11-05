@@ -24,7 +24,7 @@ export class UserEntity {
 
   @ApiProperty({ example: 'qwerty', description: 'User password' })
   @Column()
-  password: string;
+  password?: string;
 
   @BeforeInsert()
   @BeforeUpdate()
