@@ -4,7 +4,7 @@ import { UserEntity } from '@/user/user.entity';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JwtPayload } from '@/user/types/jwt-payload.interface';
+import { JwtPayload } from '@/user/types/jwtPayload.interface';
 import { safeSign } from '@/utils/userUtils/safeSign';
 import { LoginUserDto } from '@/user/dto/loginUser.dto';
 import { compare } from 'bcrypt';
@@ -91,11 +91,30 @@ export class UserService {
   }
 
   generateUserResponse(user: UserEntity): IUserResponse {
+    if (!user.id)
+      throw new HttpException('User data is missing', HttpStatus.BAD_REQUEST);
+
     return {
       user: {
         ...user,
         token: this.generateToken(user),
       },
     };
+  }
+
+  async findById(id: number): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!user)
+      throw new HttpException(
+        `User with ID ${id} was not found`,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return user;
   }
 }
