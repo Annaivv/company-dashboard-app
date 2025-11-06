@@ -2,6 +2,7 @@
 import { User } from '@/user/decorators/user.decorator';
 import { CreateUserDto } from '@/user/dto/createUser.dto';
 import { LoginUserDto } from '@/user/dto/loginUser.dto';
+import { UpdateUserDto } from '@/user/dto/updateUser.dto';
 import { AuthGuard } from '@/user/guards/auth.guard';
 import type { IUserResponse } from '@/user/types/userResponse.interface';
 import { UserEntity } from '@/user/user.entity';
@@ -11,6 +12,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -72,5 +74,28 @@ export class UserController {
   })
   getCurrentUser(@User() user: UserEntity): IUserResponse {
     return this.userService.generateUserResponse(user);
+  }
+
+  @Put('user')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Update the current user' })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiResponse({
+    status: 200,
+    description: 'User data updated successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Not authorized.',
+  })
+  async updateUser(
+    @User('id') userId: number,
+    @Body('user') updateUserDto: UpdateUserDto,
+  ): Promise<IUserResponse> {
+    const updatedUser = await this.userService.updateUser(
+      userId,
+      updateUserDto,
+    );
+    return this.userService.generateUserResponse(updatedUser);
   }
 }

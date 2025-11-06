@@ -8,6 +8,7 @@ import { JwtPayload } from '@/user/types/jwtPayload.interface';
 import { safeSign } from '@/utils/userUtils/safeSign';
 import { LoginUserDto } from '@/user/dto/loginUser.dto';
 import { compare } from 'bcrypt';
+import { UpdateUserDto } from '@/user/dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -116,5 +117,12 @@ export class UserService {
       );
 
     return user;
+  }
+
+  async updateUser(userId: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findById(userId);
+    Object.assign(user, updateUserDto);
+
+    return await this.userRepository.save(user);
   }
 }
